@@ -15,68 +15,47 @@ class MealViewSet(viewsets.ModelViewSet):
 
     @action(methods=["POST"], detail=True)
     def rate_meal(self, request, pk=None):
-        # validate username has been provided
-        is_valid_request_data = True
-        if "username" not in request.data:
-            response = {
-                "error": "username not provided",
-            }
-            is_valid_request_data = False
+        response = {}
 
-        # validate username has been provided
+        # validate stars has been provided
         if "stars" not in request.data:
-            response = {
-                "error": "stars not provided",
-            }
-            is_valid_request_data = False
+            response["stars"] = "This field is required."
 
-        # validate username has been provided
-        if not (1 <= request.data["stars"] <= 5):
-            response = {
-                "error": "stars must be in range [1, 5]",
-            }
-            is_valid_request_data = False
+        # validate stars in and integer and in range [1, 5]
+        elif type(request.data["stars"]) != int or not (
+            1 <= request.data["stars"] <= 5
+        ):
+            response["stars"] = "This field must be an integer value in range [1, 5]."
 
-        if is_valid_request_data == False:
+        if len(response):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         meal = Meal.objects.get(id=pk)
         stars = request.data["stars"]
-        username = request.data["username"]
+        user = request.user
 
         try:
-            user = User.objects.get(username=username)
-            try:
-                # UPDATE
-                rating = Rating.objects.get(user=user.id, meal=meal.id)
-                rating.stars = stars
-                rating.save()
-                serializer = RatingSerializer(rating)
+            # UPDATE
+            rating = Rating.objects.get(user=user.id, meal=meal.id)
+            rating.stars = stars
+            rating.save()
+            serializer = RatingSerializer(rating)
 
-                response = {
-                    "message": "rating has been updated successfuly :)",
-                    "rating": serializer.data,
-                }
-                return Response(response, status=status.HTTP_200_OK)
+            response["message"] = "rating has been updated successfuly :)"
+            response["rating"] = serializer.data
+            return Response(response, status=status.HTTP_200_OK)
 
-            except Rating.DoesNotExist:
-                # CREATE
-                # user hasn't rating in this meal
-                # create rating for this user
-                rating = Rating.objects.create(user=user, meal=meal, stars=stars)
-                rating.save()
-                serializer = RatingSerializer(rating)
+        except Rating.DoesNotExist:
+            # CREATE
+            # user hasn't rating in this meal
+            # create rating for this user
+            rating = Rating.objects.create(user=user, meal=meal, stars=stars)
+            rating.save()
+            serializer = RatingSerializer(rating)
 
-                response = {
-                    "message": "rating has been created successfuly :)",
-                    "rating": serializer.data,
-                }
-                return Response(response, status=status.HTTP_201_CREATED)
-        except User.DoesNotExist:
-            response = {
-                "error": "Unauthorized User",
-            }
-            return Response(response, status=status.HTTP_401_UNAUTHORIZED)
+            response["message"] = "rating has been created successfuly :)"
+            response["rating"] = serializer.data
+            return Response(response, status=status.HTTP_201_CREATED)
 
 
 class RatingViewSet(viewsets.ModelViewSet):
