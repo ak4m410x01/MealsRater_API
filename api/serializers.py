@@ -5,7 +5,14 @@ from api.models import Meal, Rating
 class MealSerializer(ModelSerializer):
     class Meta:
         model = Meal
-        fields = ("id", "name", "description", "ratings")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "num_of_ratings",
+            "avg_ratings",
+            "ratings",
+        )
         ordering = ("id",)
 
 
