@@ -16,7 +16,12 @@ class Meal(models.Model):
 class Rating(models.Model):
     meal = models.ForeignKey(Meal, models.CASCADE, related_name="ratings")
     user = models.ForeignKey(User, models.CASCADE, related_name="ratings")
-    stars = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    stars = models.IntegerField(
+        validators=[
+            MinValueValidator(1, message="Value must be at least 1."),
+            MaxValueValidator(5, message="Value must be at most 5."),
+        ]
+    )
 
     class Meta:
         unique_together = (("meal", "user"),)
