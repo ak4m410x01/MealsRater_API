@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
 from api.models import Meal, Rating
-from api.serializers import MealSerializer, RatingSerializer
+from api.serializers import MealSerializer, RatingSerializer, UserSerializer
 
 # Create your views here.
 
@@ -61,3 +62,45 @@ class MealViewSet(viewsets.ModelViewSet):
 class RatingViewSet(viewsets.ModelViewSet):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
+
+    def create(self, request, *args, **kwargs):
+        response = {
+            "message": "Invalid Operation",
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        response = {
+            "message": "Invalid Operation",
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        user = serializer.instance
+        token = Token.objects.get(user=user)
+
+        response = {
+            "token": token.key,
+        }
+        return Response(response, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        response = {
+            "error": "operation not allowed",
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    def distroy(self, request, *args, **kwargs):
+        response = {
+            "error": "operation not allowed",
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)

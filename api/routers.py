@@ -5,3 +5,4 @@ router = DefaultRouter()
 
 router.register("meals", views.MealViewSet)
 router.register("ratings", views.RatingViewSet)
+router.register("users", views.UserViewSet)
